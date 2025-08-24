@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hashboard Diagnostic Tool</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Fira+Code:wght@400;500&display=swap');
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --success-dark: #15803d;
+            --danger: #dc2626;
+            --danger-dark: #b91c1c;
+            --warning: #ea580c;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --terminal-bg: #0f172a;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #cffafe 0%, #e0f2fe 100%);
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        h1 {
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 28px;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 500;
+            font-size: 18px;
+        }
+        
+        p.description {
+            color: var(--gray);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        .control-group {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        
+        .control-group h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-family: 'Roboto', sans-serif;
+            background: white;
+            margin-bottom: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 25px 0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #connect-btn {
+            background-color: var(--primary);
+        }
+        
+        #connect-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        #start-btn {
+            background-color: var(--success);
+        }
+        
+        #start-btn:hover {
+            background-color: var(--success-dark);
+        }
+        
+        #stop-btn {
+            background-color: var(--danger);
+        }
+        
+        #stop-btn:hover {
+            background-color: var(--danger-dark);
+        }
+        
+        #advanced-btn {
+            background-color: var(--warning);
+        }
+        
+        .status-panel {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        #status {
+            font-size: 15px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #94a3b8;
+            display: inline-block;
+        }
+        
+        .status-connected {
+            background: var(--success);
+        }
+        
+        .status-error {
+            background: var(--danger);
+        }
+        
+        .status-processing {
+            background: var(--warning);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .terminal-container {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .terminal-header h3 {
+            font-size: 16px;
+            color: var(--dark);
+        }
+        
+        #terminal {
+            padding: 15px;
+            background-color: var(--terminal-bg);
+            color: #00ff00;
+            font-family: 'Fira Code', monospace;
+            white-space: pre-wrap;
+            height: 350px;
+            overflow-y: scroll;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        #terminal::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #terminal::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        
+        .terminal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .terminal-actions button {
+            padding: 6px 12px;
+            font-size: 13px;
+            background: var(--dark);
+        }
+        
+        .command-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .command-btn {
+            background: var(--primary);
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        
+        footer {
+            margin-top: 30px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            #terminal {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Hashboard Diagnostic Tool</h1>
+            <h2>Author: Anan</h2>
+            <p class="description">Alat untuk mendeteksi dan menganalisis kerusakan pada hasboard miner cryptocurrency</p>
+            <span class="badge">v2.0 - Enhanced</span>
+        </div>
+        
+        <div class="control-panel">
+            <div class="control-group">
+                <h3>Pengaturan Koneksi</h3>
+                <label for="baudrate-select">Baud Rate:</label>
+                <select id="baudrate-select">
+                    <option value="9600" selected>9600</option>
+                    <option value="19200">19200</option>
+                    <option value="38400">38400</option>
+                    <option value="57600">57600</option>
+                    <option value="115200">115200</option>
+                </select>
+                
+                <label for="command-select">Perintah Diagnostik:</label>
+                <select id="command-select">
+                    <option value="AT+CHECK">AT+CHECK (Cek Status)</option>
+                    <option value="AT+STATUS">AT+STATUS (Status Detail)</option>
+                    <option value="AT+ERRORS">AT+ERRORS (Daftar Error)</option>
+                    <option value="AT+RESET">AT+RESET (Reset Hashboard)</option>
+                    <option value="AT+TEMP">AT+TEMP (Info Suhu)</option>
+                    <option value="AT+VOLT">AT+VOLT (Info Voltase)</option>
+                    <option value="custom">Custom Command</option>
+                </select>
+                
+                <div id="custom-command-container" style="display: none;">
+                    <label for="custom-command">Custom Command:</label>
+                    <input type="text" id="custom-command" placeholder="Masukkan perintah custom">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>Opsi Diagnostik</h3>
+                <label>
+                    <input type="checkbox" id="auto-scroll" checked> Auto-scroll terminal
+                </label>
+                <label>
+                    <input type="checkbox" id="timestamp"> Tambahkan timestamp
+                </label>
+                <label>
+                    <input type="checkbox" id="continuous-mode"> Mode continuous
+                </label>
+                
+                <div class="command-buttons">
+                    <button class="command-btn" data-command="AT+CHECK">Cek Status</button>
+                    <button class="command-btn" data-command="AT+TEMP">Cek Suhu</button>
+                    <button class="command-btn" data-command="AT+VOLT">Cek Voltase</button>
+                    <button class="command-btn" data-command="AT+ERRORS">Daftar Error</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button id="connect-btn">
+                <i class="icon">🔌</i> Hubungkan Perangkat
+            </button>
+            <button id="start-btn" disabled>
+                <i class="icon">🚀</i> Jalankan Diagnostik
+            </button>
+            <button id="stop-btn" disabled>
+                <i class="icon">⏹️</i> Stop
+            </button>
+            <button id="advanced-btn">
+                <i class="icon">⚙️</i> Opsi Lanjutan
+            </button>
+        </div>
+        
+        <div class="status-panel">
+            <div id="status">
+                <span class="status-indicator"></span>
+                Status: Menunggu koneksi...
+            </div>
+        </div>
+        
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <h3>Terminal Output</h3>
+                <div class="terminal-actions">
+                    <button id="clear-btn">Bersihkan Terminal</button>
+                    <button id="export-btn">Ekspor Log</button>
+                </div>
+            </div>
+            <div id="terminal">Hashboard Diagnostic Tool siap digunakan...
+Hubungkan perangkat Anda untuk memulai diagnosa.</div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Hashboard Diagnostic Tool | Untuk mendukung pekerjaan perbaikan hasboard miner</p>
+        </footer>
+    </div>
+
+    <script>
+        // Perintah diagnostik yang tersedia
+        const diagnosticCommands = {
+            'AT+CHECK': 'Memeriksa status dasar hasboard',
+            'AT+STATUS': 'Mendapatkan status detail hasboard',
+            'AT+ERRORS': 'Mendapatkan daftar error yang tercatat',
+            'AT+RESET': 'Melakukan reset pada hasboard',
+            'AT+TEMP': 'Membaca informasi suhu',
+            'AT+VOLT': 'Membaca informasi voltase',
+            'AT+CONFIG': 'Menampilkan konfigurasi saat ini'
+        };
+        
+        // Elemen UI
+        const connectBtn = document.getElementById('connect-btn');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const advancedBtn = document.getElementById('advanced-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const statusDiv = document.getElementById('status');
+        const statusIndicator = statusDiv.querySelector('.status-indicator');
+        const terminal = document.getElementById('terminal');
+        const baudrateSelect = document.getElementById('baudrate-select');
+        const commandSelect = document.getElementById('command-select');
+        const customCommandContainer = document.getElementById('custom-command-container');
+        const customCommandInput = document.getElementById('custom-command');
+        const autoScrollCheckbox = document.getElementById('auto-scroll');
+        const timestampCheckbox = document.getElementById('timestamp');
+        const continuousModeCheckbox = document.getElementById('continuous-mode');
+        const commandButtons = document.querySelectorAll('.command-btn');
+        
+        // Variabel state
+        let port = null;
+        let writer = null;
+        let reader = null;
+        let readInterval = null;
+        let diagnosticInterval = null;
+        let isConnected = false;
+        let isReading = false;
+        
+        // Event listener untuk pilihan command
+        commandSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customCommandContainer.style.display = 'block';
+            } else {
+                customCommandContainer.style.display = 'none';
+            }
+        });
+        
+        // Event listener untuk tombol command
+        commandButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (!isConnected) {
+                    updateStatus('error', 'Harap hubungkan perangkat terlebih dahulu');
+                    return;
+                }
+                
+                const command = this.getAttribute('data-command');
+                sendCommand(command);
+            });
+        });
+        
+        // Event listener untuk tombol clear terminal
+        clearBtn.addEventListener('click', function() {
+            terminal.textContent = '';
+            addToTerminal('Terminal dibersihkan...\n');
+        });
+        
+        // Event listener untuk tombol export log
+        exportBtn.addEventListener('click', function() {
+            exportTerminalContent();
+        });
+        
+        // Fungsi untuk mengupdate status
+        function updateStatus(status, message) {
+            statusDiv.textContent = `Status: ${message}`;
+            statusIndicator.className = 'status-indicator';
+            
+            switch(status) {
+                case 'connected':
+                    statusIndicator.classList.add('status-connected');
+                    break;
+                case 'error':
+                    statusIndicator.classList.add('status-error');
+                    break;
+                case 'processing':
+                    statusIndicator.classList.add('status-processing');
+                    break;
+                default:
+                    // Default state
+                    break;
+            }
+        }
+        
+        // Fungsi untuk menambah konten ke terminal
+        function addToTerminal(text) {
+            let output = text;
+            
+            if (timestampCheckbox.checked) {
+                const timestamp = new Date().toLocaleTimeString();
+                output = `[${timestamp}] ${text}`;
+            }
+            
+            terminal.textContent += output;
+            
+            if (autoScrollCheckbox.checked) {
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        }
+        
+        // Fungsi untuk mengekspor konten terminal
+        function exportTerminalContent() {
+            const blob = new Blob([terminal.textContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hashboard-log-${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addToTerminal('Log diekspor...\n');
+        }
+        
+        // Fungsi untuk mengirim perintah
+        async function sendCommand(command) {
+            if (!writer) {
+                addToTerminal('Error: Tidak terhubung ke perangkat\n');
+                return;
+            }
+            
+            try {
+                const commandToSend = command.endsWith('\n') ? command : command + '\n';
+                await writer.write(new TextEncoder().encode(commandToSend));
+                addToTerminal(`Mengirim: ${command}\n`);
+            } catch (error) {
+                addToTerminal(`Error mengirim perintah: ${error}\n`);
+            }
+        }
+        
+        // Fungsi untuk membaca data dari port serial
+        async function readData() {
+            while (isReading && port.readable) {
+                try {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    
+                    if (value) {
+                        const text = new TextDecoder().decode(value);
+                        addToTerminal(text);
+                    }
+                } catch (error) {
+                    addToTerminal(`Error membaca data: ${error}\n`);
+                    break;
+                }
+            }
+        }
+        
+        // Check browser support
+        if ('serial' in navigator) {
+            // Event listener untuk tombol connect
+            connectBtn.addEventListener('click', async () => {
+                if (isConnected) {
+                    // Disconnect logic
+                    try {
+                        isReading = false;
+                        
+                        if (readInterval) {
+                            clearInterval(readInterval);
+                            readInterval = null;
+                        }
+                        
+                        if (diagnosticInterval) {
+                            clearInterval(diagnosticInterval);
+                            diagnosticInterval = null;
+                        }
+                        
+                        if (reader) {
+                            await reader.cancel();
+                        }
+                        
+                        if (writer) {
+                            writer.releaseLock();
+                        }
+                        
+                        if (port) {
+                            await port.close();
+                        }
+                        
+                        isConnected = false;
+                        connectBtn.innerHTML = '<i class="icon">🔌</i> Hubungkan Perangkat';
+                        startBtn.disabled = true;
+                        stopBtn.disabled = true;
+                        updateStatus('default', 'Terputus dari perangkat');
+                        addToTerminal('Terputus dari perangkat...\n');
+                    } catch (error) {
+                        addToTerminal(`Error saat memutuskan: ${error}\n`);
+                    }
+                } else {
+                    // Connect logic
+                    updateStatus('processing', 'Menghubungkan...');
+                    
+                    try {
+                        port = await navigator.serial.requestPort();
+                        const baudRate = parseInt(baudrateSelect.value);
+                        await port.open({ baudRate });
+                        
+                        writer = port.writable.getWriter();
+                        
+                        // Setup reader
+                        const decoder = new TextDecoderStream();
+                        const readableStreamClosed = port.readable.pipeTo(decoder.writable);
+                        reader = decoder.readable.getReader();
+                        
+                        isConnected = true;
+                        isReading = true;
+                        connectBtn.innerHTML = '<i class="icon">🔌</i> Putuskan Perangkat';
+                        startBtn.disabled = false;
+                        updateStatus('connected', 'Terhubung! ✅');
+                        addToTerminal('Berhasil terhubung ke perangkat...\n');
+                        
+                        // Start reading data
+                        readData();
+                        
+                    } catch (error) {
+                        updateStatus('error', 'Gagal terhubung. ❌');
+                        addToTerminal(`Error: ${error}\n`);
+                    }
+                }
+            });
+            
+            // Event listener untuk tombol start
+            startBtn.addEventListener('click', async () => {
+                if (!isConnected) {
+                    updateStatus('error', 'Harap hubungkan perangkat terlebih dahulu');
+                    return;
+                }
+                
+                const selectedCommand = commandSelect.value;
+                let commandToSend = selectedCommand;
+                
+                if (selectedCommand === 'custom') {
+                    commandToSend = customCommandInput.value.trim();
+                    if (!commandToSend) {
+                        addToTerminal('Error: Perintah custom kosong\n');
+                        return;
+                    }
+                }
+                
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+                // Kirim perintah pertama
+                sendCommand(commandToSend);
+                
+                // Jika continuous mode diaktifkan, kirim perintah berulang
+                if (continuousModeCheckbox.checked) {
+                    diagnosticInterval = setInterval(async () => {
+                        sendCommand(commandToSend);
+                    }, 3000);
+                }
+            });
+            
+            // Event listener untuk tombol stop
+            stopBtn.addEventListener('click', async () => {
+                if (diagnosticInterval) {
+                    clearInterval(diagnosticInterval);
+                    diagnosticInterval = null;
+                }
+                
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                
+                addToTerminal('Diagnostik dihentikan...\n');
+            });
+            
+            // Event listener untuk tombol advanced
+            advancedBtn.addEventListener('click', function() {
+                addToTerminal('Fitur opsi lanjutan belum tersedia. Akan hadir di update berikutnya...\n');
+            });
+            
+        } else {
+            // Browser doesn't support Web Serial API
+            updateStatus('error', 'Browser tidak mendukung Web Serial API');
+            connectBtn.disabled = true;
+            startBtn.disabled = true;
+            terminal.textContent = 'Browser Anda tidak mendukung Web Serial API. Silakan gunakan Chrome atau Edge versi terbaru.';
+        }
+    </script>
+</body>
+</html>
