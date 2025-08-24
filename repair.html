@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antminer HashBoard Tester</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --success-dark: #15803d;
+            --danger: #dc2626;
+            --danger-dark: #b91c1c;
+            --warning: #ea580c;
+            --info: #0ea5e9;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --terminal-bg: #0f172a;
+            --antminer-blue: #0066cc;
+            --antminer-dark: #001a33;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, var(--antminer-dark) 0%, #003366 100%);
+            color: #e2e8f0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 26, 51, 0.8);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--antminer-blue);
+        }
+        
+        header {
+            background: linear-gradient(90deg, var(--antminer-dark) 0%, var(--antminer-blue) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" opacity="0.1"><rect x="0" y="0" width="100" height="100" fill="white" /><path d="M25,25 L75,25 L75,75 L25,75 Z" stroke="white" fill="none" stroke-width="2" /></svg>');
+            opacity: 0.1;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .description {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .antminer-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: rgba(0, 26, 51, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--antminer-blue);
+        }
+        
+        .panel h2 {
+            color: var(--antminer-blue);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--antminer-blue);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel h2 i {
+            font-size: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(15, 23, 42, 0.7);
+            color: #e2e8f0;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--antminer-blue);
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.3);
+        }
+        
+        button {
+            padding: 14px 20px;
+            background: var(--antminer-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-info {
+            background: var(--info);
+        }
+        
+        .terminal {
+            grid-column: 1 / -1;
+            background: var(--terminal-bg);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            border: 1px solid #334155;
+        }
+        
+        .status-bar {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 26, 51, 0.7);
+            border-top: 1px solid #334155;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray);
+            margin-right: 10px;
+        }
+        
+        .status-indicator.connected {
+            background: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .status-text {
+            font-size: 14px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-buttons button {
+            flex: 1;
+        }
+        
+        .asic-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .asic-chip {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #334155;
+            transition: all 0.3s;
+        }
+        
+        .asic-chip.good {
+            border-color: var(--success);
+            box-shadow: 0 0 10px rgba(22, 163, 74, 0.3);
+        }
+        
+        .asic-chip.bad {
+            border-color: var(--danger);
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+        }
+        
+        .asic-chip.warning {
+            border-color: var(--warning);
+            box-shadow: 0 0 10px rgba(234, 88, 12, 0.3);
+        }
+        
+        .chip-id {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .chip-status {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .temp-display {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #334155;
+        }
+        
+        .temp-display.high {
+            color: var(--danger);
+        }
+        
+        .temp-display.normal {
+            color: var(--success);
+        }
+        
+        .temp-display.low {
+            color: var(--info);
+        }
+        
+        .gauge {
+            width: 100%;
+            height: 20px;
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+            border: 1px solid #334155;
+        }
+        
+        .gauge-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--info) 0%, var(--success) 50%, var(--danger) 100%);
+            width: 50%;
+            transition: width 0.5s;
+        }
+        
+        .led {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray);
+            margin-right: 5px;
+        }
+        
+        .led.on {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+        
+        .led.off {
+            background: var(--gray);
+        }
+        
+        .led.warning {
+            background: var(--warning);
+            box-shadow: 0 0 10px var(--warning);
+        }
+        
+        .led.error {
+            background: var(--danger);
+            box-shadow: 0 0 10px var(--danger);
+        }
+        
+        .model-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .model-btn {
+            padding: 10px 15px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .model-btn.active {
+            background: var(--antminer-blue);
+            border-color: var(--antminer-blue);
+        }
+        
+        .connection-diagram {
+            grid-column: 1 / -1;
+            background: rgba(0, 26, 51, 0.7);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--antminer-blue);
+        }
+        
+        .diagram-title {
+            color: var(--antminer-blue);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .diagram-content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .diagram-item {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .diagram-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: var(--antminer-blue);
+        }
+        
+        .diagram-arrow {
+            font-size: 24px;
+            color: var(--antminer-blue);
+        }
+        
+        @media (max-width: 768px) {
+            .diagram-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="antminer-logo">ANTMINER</div>
+            <h1>HashBoard Tester Tool</h1>
+            <p class="description">Alat khusus untuk testing dan diagnosa HashBoard Antminer</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h2><i>🔌</i> Koneksi Perangkat</h2>
+                <div class="form-group">
+                    <label for="baudRate">Baud Rate:</label>
+                    <select id="baudRate">
+                        <option value="9600">9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400">38400</option>
+                        <option value="57600">57600</option>
+                        <option value="115200" selected>115200</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Model Antminer:</label>
+                    <div class="model-selector">
+                        <button class="model-btn active" data-model="S9">S9</button>
+                        <button class="model-btn" data-model="S17">S17</button>
+                        <button class="model-btn" data-model="S19">S19</button>
+                        <button class="model-btn" data-model="L3">L3</button>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="connectBtn" class="btn-success">
+                        <span class="led" id="connectLed"></span>
+                        Hubungkan ke Arduino
+                    </button>
+                    <button id="disconnectBtn" class="btn-danger" disabled>
+                        Putuskan Koneksi
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2><i>📊</i> Status Sistem</h2>
+                <div class="form-group">
+                    <label for="systemStatus">Status HashBoard:</label>
+                    <textarea id="systemStatus" rows="4" readonly>Sistem belum diinisialisasi. Hubungkan perangkat terlebih dahulu.</textarea>
+                </div>
+                
+                <button id="refreshStatusBtn" class="btn-info" disabled>
+                    <span class="led" id="statusLed"></span>
+                    Refresh Status
+                </button>
+            </div>
+            
+            <div class="panel">
+                <h2><i>🌡️</i> Monitoring Suhu</h2>
+                <div class="form-group">
+                    <label for="tempValue">Suhu Saat Ini:</label>
+                    <div class="temp-display normal" id="tempDisplay">-- °C</div>
+                    <div class="gauge">
+                        <div class="gauge-fill" id="tempGauge"></div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="readTempBtn" class="btn-warning" disabled>
+                        <span class="led" id="tempLed"></span>
+                        Baca Suhu
+                    </button>
+                    <button id="monitorTempBtn" class="btn-info" disabled>
+                        Monitor Kontinu
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2><i>🔍</i> Deteksi ASIC</h2>
+                <div class="form-group">
+                    <label>Status Chip ASIC:</label>
+                    <div class="asic-grid" id="asicGrid">
+                        <!-- ASIC chips will be generated here -->
+                    </div>
+                </div>
+                
+                <button id="detectAsicBtn" class="btn-warning" disabled>
+                    <span class="led" id="asicLed"></span>
+                    Deteksi ASIC
+                </button>
+            </div>
+            
+            <div class="panel">
+                <h2><i>💾</i> Operasi EEPROM</h2>
+                <div class="form-group">
+                    <label for="eepromAddress">Alamat EEPROM (Hex):</label>
+                    <input type="text" id="eepromAddress" value="0000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="eepromData">Data (Hex):</label>
+                    <input type="text" id="eepromData" placeholder="A1 B2 C3 ...">
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="readEepromBtn" class="btn-warning" disabled>
+                        <span class="led" id="eepromReadLed"></span>
+                        Baca EEPROM
+                    </button>
+                    <button id="writeEepromBtn" class="btn-warning" disabled>
+                        <span class="led" id="eepromWriteLed"></span>
+                        Tulis EEPROM
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2><i>⚙️</i> Kontrol HashBoard</h2>
+                <div class="form-group">
+                    <label for="hashboardAction">Aksi:</label>
+                    <select id="hashboardAction">
+                        <option value="reset">Reset HashBoard</option>
+                        <option value="enable">Enable HashBoard</option>
+                        <option value="disable">Disable HashBoard</option>
+                        <option value="frequency">Atur Frekuensi</option>
+                    </select>
+                </div>
+                
+                <button id="executeActionBtn" class="btn-warning" disabled>
+                    Eksekusi Aksi
+                </button>
+            </div>
+            
+            <div class="terminal" id="terminal">
+// Terminal Output - HashBoard Tester untuk Antminer
+// Sistem siap menerima perintah
+// Hubungkan Arduino untuk memulai testing
+            </div>
+            
+            <div class="connection-diagram">
+                <h3 class="diagram-title">Diagram Koneksi</h3>
+                <div class="diagram-content">
+                    <div class="diagram-item">
+                        <div class="diagram-icon">💻</div>
+                        <div>PC dengan Browser</div>
+                    </div>
+                    
+                    <div class="diagram-arrow">➡️</div>
+                    
+                    <div class="diagram-item">
+                        <div class="diagram-icon">🔌</div>
+                        <div>Koneksi USB</div>
+                    </div>
+                    
+                    <div class="diagram-arrow">➡️</div>
+                    
+                    <div class="diagram-item">
+                        <div class="diagram-icon">⚙️</div>
+                        <div>Arduino</div>
+                    </div>
+                    
+                    <div class="diagram-arrow">➡️</div>
+                    
+                    <div class="diagram-item">
+                        <div class="diagram-icon">🔗</div>
+                        <div>Konektor HashBoard</div>
+                    </div>
+                    
+                    <div class="diagram-arrow">➡️</div>
+                    
+                    <div class="diagram-item">
+                        <div class="diagram-icon">⛏️</div>
+                        <div>HashBoard Antminer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <div class="status-text" id="statusText">Status: Tidak terhubung</div>
+        </div>
+    </div>
+
+    <script>
+        // Variabel global
+        let port;
+        let reader;
+        let writer;
+        let readInterval;
+        let isConnected = false;
+        let isMonitoring = false;
+        let currentModel = "S9";
+        
+        // Elemen UI
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const readTempBtn = document.getElementById('readTempBtn');
+        const monitorTempBtn = document.getElementById('monitorTempBtn');
+        const detectAsicBtn = document.getElementById('detectAsicBtn');
+        const readEepromBtn = document.getElementById('readEepromBtn');
+        const writeEepromBtn = document.getElementById('writeEepromBtn');
+        const refreshStatusBtn = document.getElementById('refreshStatusBtn');
+        const executeActionBtn = document.getElementById('executeActionBtn');
+        const terminal = document.getElementById('terminal');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const tempDisplay = document.getElementById('tempDisplay');
+        const tempGauge = document.getElementById('tempGauge');
+        const asicGrid = document.getElementById('asicGrid');
+        const modelButtons = document.querySelectorAll('.model-btn');
+        
+        // Generate ASIC chips based on model
+        function generateAsicChips(model) {
+            asicGrid.innerHTML = '';
+            let chipCount = 0;
+            
+            switch(model) {
+                case "S9":
+                    chipCount = 63;
+                    break;
+                case "S17":
+                    chipCount = 60;
+                    break;
+                case "S19":
+                    chipCount = 76;
+                    break;
+                case "L3":
+                    chipCount = 72;
+                    break;
+                default:
+                    chipCount = 63;
+            }
+            
+            for (let i = 0; i < chipCount; i++) {
+                const chip = document.createElement('div');
+                chip.className = 'asic-chip';
+                chip.innerHTML = `
+                    <div class="chip-id">Chip ${i+1}</div>
+                    <div class="chip-status">-</div>
+                `;
+                asicGrid.appendChild(chip);
+            }
+        }
+        
+        // Initialize with S9 model
+        generateAsicChips(currentModel);
+        
+        // Model selection
+        modelButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modelButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentModel = button.getAttribute('data-model');
+                generateAsicChips(currentModel);
+                addToTerminal(`Model Antminer diubah ke: ${currentModel}`);
+            });
+        });
+        
+        // Fungsi untuk mengupdate status koneksi
+        function updateStatus(connected) {
+            isConnected = connected;
+            statusIndicator.classList.toggle('connected', connected);
+            statusText.textContent = connected ? 
+                'Status: Terhubung ke Arduino' : 'Status: Tidak terhubung';
+            
+            connectBtn.disabled = connected;
+            disconnectBtn.disabled = !connected;
+            readTempBtn.disabled = !connected;
+            monitorTempBtn.disabled = !connected;
+            detectAsicBtn.disabled = !connected;
+            readEepromBtn.disabled = !connected;
+            writeEepromBtn.disabled = !connected;
+            refreshStatusBtn.disabled = !connected;
+            executeActionBtn.disabled = !connected;
+            
+            // Update LED status
+            document.getElementById('connectLed').className = connected ? 'led on' : 'led off';
+        }
+        
+        // Fungsi untuk menambah pesan ke terminal
+        function addToTerminal(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            terminal.textContent += `\n[${timestamp}] ${message}`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        // Fungsi untuk menghubungkan ke perangkat serial
+        async function connectToDevice() {
+            try {
+                if (!navigator.serial) {
+                    throw new Error('Web Serial API tidak didukung di browser ini. Gunakan Chrome atau Edge.');
+                }
+                
+                port = await navigator.serial.requestPort();
+                const baudRate = parseInt(document.getElementById('baudRate').value);
+                
+                await port.open({ baudRate });
+                writer = port.writable.getWriter();
+                
+                const decoder = new TextDecoderStream();
+                const readableStreamClosed = port.readable.pipeTo(decoder.writable);
+                reader = decoder.readable.getReader();
+                
+                updateStatus(true);
+                addToTerminal('Terhubung ke Arduino');
+                addToTerminal('Mengirim perintah inisialisasi...');
+                
+                // Kirim perintah inisialisasi
+                await sendCommand('INIT:' + currentModel);
+                
+                // Mulai membaca data dari perangkat
+                readFromDevice();
+                
+            } catch (error) {
+                addToTerminal(`Error: ${error.message}`);
+            }
+        }
+        
+        // Fungsi untuk membaca data dari perangkat
+        async function readFromDevice() {
+            try {
+                while (isConnected) {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        reader.releaseLock();
+                        break;
+                    }
+                    
+                    if (value) {
+                        // Proses data yang diterima
+                        processIncomingData(value);
+                    }
+                }
+            } catch (error) {
+                addToTerminal(`Error membaca data: ${error.message}`);
+                if (isConnected) {
+                    await disconnectDevice();
+                }
+            }
+        }
+        
+        // Fungsi untuk memproses data yang masuk
+        function processIncomingData(data) {
+            // Deteksi dan proses data suhu
+            if (data.includes('TEMP:')) {
+                const temp = data.split('TEMP:')[1].trim();
+                updateTemperatureDisplay(parseFloat(temp));
+                addToTerminal(`Data suhu diterima: ${temp} °C`);
+            }
+            // Deteksi dan proses data EEPROM
+            else if (data.includes('EEPROM:')) {
+                const parts = data.split(':');
+                if (parts[1] === 'READ') {
+                    const address = parts[2];
+                    const dataHex = parts[3];
+                    addToTerminal(`Data EEPROM dari alamat 0x${address}: ${dataHex}`);
+                } else if (parts[1] === 'WRITE') {
+                    const address = parts[2];
+                    addToTerminal(`Data berhasil ditulis ke alamat 0x${address}`);
+                }
+            }
+            // Deteksi status ASIC
+            else if (data.includes('ASIC:')) {
+                const asicData = data.split('ASIC:')[1].trim();
+                updateAsicStatus(asicData);
+            }
+            // Deteksi status sistem
+            else if (data.includes('STATUS:')) {
+                const status = data.split('STATUS:')[1].trim();
+                document.getElementById('systemStatus').value = status;
+            }
+            // Tampilkan data lainnya di terminal
+            else {
+                addToTerminal(`Data diterima: ${data}`);
+            }
+        }
+        
+        // Fungsi untuk mengirim perintah ke perangkat
+        async function sendCommand(command) {
+            if (!writer) {
+                addToTerminal('Error: Tidak terhubung ke perangkat');
+                return;
+            }
+            
+            try {
+                await writer.write(new TextEncoder().encode(command + '\n'));
+                addToTerminal(`Perintah dikirim: ${command}`);
+            } catch (error) {
+                addToTerminal(`Error mengirim perintah: ${error.message}`);
+            }
+        }
+        
+        // Fungsi untuk membaca suhu
+        function readTemperature() {
+            sendCommand('TEMP:READ');
+        }
+        
+        // Fungsi untuk mengupdate tampilan suhu
+        function updateTemperatureDisplay(temp) {
+            tempDisplay.textContent = `${temp} °C`;
+            
+            // Update gauge
+            let gaugeWidth = 0;
+            if (temp <= 40) {
+                gaugeWidth = (temp / 40) * 50;
+                tempDisplay.className = 'temp-display low';
+            } else if (temp <= 80) {
+                gaugeWidth = 50 + ((temp - 40) / 40) * 25;
+                tempDisplay.className = 'temp-display normal';
+            } else {
+                gaugeWidth = 75 + ((temp - 80) / 40) * 25;
+                tempDisplay.className = 'temp-display high';
+            }
+            
+            tempGauge.style.width = `${Math.min(gaugeWidth, 100)}%`;
+        }
+        
+        // Fungsi untuk memulai/menghentikan monitoring suhu
+        function toggleTemperatureMonitoring() {
+            if (isMonitoring) {
+                clearInterval(readInterval);
+                isMonitoring = false;
+                monitorTempBtn.textContent = 'Monitor Kontinu';
+                addToTerminal('Monitoring suhu dihentikan');
+            } else {
+                isMonitoring = true;
+                monitorTempBtn.textContent = 'Stop Monitoring';
+                addToTerminal('Monitoring suhu dimulai');
+                readInterval = setInterval(readTemperature, 2000);
+            }
+        }
+        
+        // Fungsi untuk mendeteksi ASIC
+        function detectAsic() {
+            sendCommand('ASIC:DETECT');
+        }
+        
+        // Fungsi untuk mengupdate status ASIC
+        function updateAsicStatus(asicData) {
+            try {
+                const chips = asicData.split(',');
+                const asicChips = document.querySelectorAll('.asic-chip');
+                
+                chips.forEach((status, index) => {
+                    if (index < asicChips.length) {
+                        const chip = asicChips[index];
+                        const statusElement = chip.querySelector('.chip-status');
+                        
+                        chip.classList.remove('good', 'bad', 'warning');
+                        statusElement.textContent = status;
+                        
+                        if (status === 'GOOD') {
+                            chip.classList.add('good');
+                        } else if (status === 'BAD') {
+                            chip.classList.add('bad');
+                        } else if (status === 'WEAK') {
+                            chip.classList.add('warning');
+                        }
+                    }
+                });
+                
+                addToTerminal('Status ASIC chips diperbarui');
+            } catch (error) {
+                addToTerminal(`Error memproses data ASIC: ${error.message}`);
+            }
+        }
+        
+        // Fungsi untuk membaca EEPROM
+        function readEeprom() {
+            const address = document.getElementById('eepromAddress').value;
+            sendCommand(`EEPROM:READ:${address}`);
+        }
+        
+        // Fungsi untuk menulis EEPROM
+        function writeEeprom() {
+            const address = document.getElementById('eepromAddress').value;
+            const data = document.getElementById('eepromData').value;
+            
+            if (!data) {
+                addToTerminal('Error: Data EEPROM tidak boleh kosong');
+                return;
+            }
+            
+            sendCommand(`EEPROM:WRITE:${address}:${data}`);
+        }
+        
+        // Fungsi untuk menjalankan aksi
+        function executeAction() {
+            const action = document.getElementById('hashboardAction').value;
+            sendCommand(`ACTION:${action}`);
+        }
+        
+        // Fungsi untuk refresh status
+        function refreshStatus() {
+            sendCommand('STATUS');
+        }
+        
+        // Fungsi untuk memutuskan koneksi
+        async function disconnectDevice() {
+            if (isMonitoring) {
+                clearInterval(readInterval);
+                isMonitoring = false;
+                monitorTempBtn.textContent = 'Monitor Kontinu';
+            }
+            
+            if (reader) {
+                await reader.cancel();
+            }
+            
+            if (writer) {
+                writer.releaseLock();
+            }
+            
+            if (port) {
+                await port.close();
+            }
+            
+            updateStatus(false);
+            addToTerminal('Arduino terputus');
+        }
+        
+        // Event listeners
+        connectBtn.addEventListener('click', connectToDevice);
+        disconnectBtn.addEventListener('click', disconnectDevice);
+        readTempBtn.addEventListener('click', readTemperature);
+        monitorTempBtn.addEventListener('click', toggleTemperatureMonitoring);
+        detectAsicBtn.addEventListener('click', detectAsic);
+        readEepromBtn.addEventListener('click', readEeprom);
+        writeEepromBtn.addEventListener('click', writeEeprom);
+        refreshStatusBtn.addEventListener('click', refreshStatus);
+        executeActionBtn.addEventListener('click', executeAction);
+        
+        // Inisialisasi status
+        updateStatus(false);
+        
+        // Tambahkan pesan sambutan
+        addToTerminal('Antminer HashBoard Tester Tool v1.0');
+        addToTerminal('Khusus untuk HashBoard Antminer S9, S17, S19, dan L3+');
+        addToTerminal('Hubungkan Arduino untuk memulai testing');
+    </script>
+</body>
+</html>
